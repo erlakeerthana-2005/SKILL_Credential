@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Institution Dashboard - Skill Credential Aggregator</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="dashboard.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="script.js" defer></script>
+    <style>
+        .badge-success {
+            background: rgba(16, 185, 129, 0.1);
+            color: #10b981;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="dashboard">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <img src="logo.png" alt="Logo" class="sidebar-logo">
+                <div class="sidebar-title">Skill Aggregator</div>
+            </div>
+
+            <div class="user-profile">
+                <div class="user-avatar" id="userAvatar">I</div>
+                <div class="user-details">
+                    <h3 id="instNameHeader">Institution Name</h3>
+                    <p>Verified Issuer</p>
+                </div>
+            </div>
+
+            <nav class="nav-menu">
+                <a href="#" class="nav-link active">
+                    <span class="nav-icon">📊</span>
+                    Issuance Portal
+                </a>
+                <a href="#" class="nav-link">
+                    <span class="nav-icon">🎓</span>
+                    Issued Credentials
+                </a>
+                <a href="verify.html" class="nav-link">
+                    <span class="nav-icon">🛡️</span>
+                    Verify portal
+                </a>
+            </nav>
+
+            <button class="logout-btn-sidebar" onclick="logout()">Logout Securely</button>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="page-header">
+                <h1>Credential Issuance Portal</h1>
+                <p>Officially issue blockchain-verified credentials to students.</p>
+            </div>
+
+            <!-- Statistics -->
+            <div class="dashboard-grid">
+                <div class="stat-card gold">
+                    <div class="stat-icon">📜</div>
+                    <div class="stat-value" id="totalCredentials">0</div>
+                    <div class="stat-label">Total Issued</div>
+                </div>
+                <div class="stat-card success">
+                    <div class="stat-icon">📅</div>
+                    <div class="stat-value" id="monthCredentials">0</div>
+                    <div class="stat-label">Issued This Month</div>
+                </div>
+                <div class="stat-card info">
+                    <div class="stat-icon">🏛️</div>
+                    <div class="stat-value"
+                        style="font-size: 1.2rem; min-height: 48px; display: flex; align-items: center;"
+                        id="institutionNameDisplay">-</div>
+                    <div class="stat-label">Institution Entity</div>
+                </div>
+            </div>
+
+            <div class="content-section">
+                <div class="section-head">
+                    <h2>Issue New Certificate</h2>
+                </div>
+                <div id="message"></div>
+                <form id="issueForm">
+                    <div class="input-group">
+                        <label for="student_email">Student Email Address</label>
+                        <input type="email" id="student_email" placeholder="student@example.com" required>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="skill_name">Certified Skill Name</label>
+                        <input type="text" id="skill_name" placeholder="e.g., Python Programming" required>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="issuer_name">Official Issuer Name</label>
+                        <input type="text" id="issuer_name" placeholder="Your institution name" required>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="description">Credential Description (Optional)</label>
+                        <input type="text" id="description" placeholder="Brief description of requirements met">
+                    </div>
+
+                    <button type="submit" class="action-btn" style="width: 100%; padding: 16px;">
+                        🔐 Generate & Sign Blockchain Credential
+                    </button>
+                </form>
+            </div>
+
+            <!-- Credentials Table -->
+            <div class="content-section">
+                <div class="section-head">
+                    <h2>History of Issued Credentials</h2>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Recipient</th>
+                                <th>Skill Name</th>
+                                <th>Issue Date</th>
+                                <th>Status</th>
+                                <th>Ledger Hash</th>
+                            </tr>
+                        </thead>
+                        <tbody id="credentialsTableBody">
+                            <tr>
+                                <td colspan="6" style="text-align: center; padding: 2rem;">Loading ledger data...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Check authentication
+        const token = localStorage.getItem('token');
+        const role = localStorage.getItem('role');
+        const name = localStorage.getItem('name');
+
+        // Debug logging
+        console.log('=== Institution Dashboard Auth Check ===');
+        console.log('token:', token);
+        console.log('role:', role);
+        console.log('name:', name);
+        console.log('role === "institution":', role === 'institution');
+
+        if (!token || role !== 'institution') {
+            console.error('Access denied! token:', !!token, 'role:', role);
+            showToast("Restricted Access. Institution status required.", "error");
+            setTimeout(() => window.location.href = 'login.html', 1500);
+        } else {
+            console.log('Access granted! Welcome', name);
+        }
+
+        // Display welcome message
+        document.getElementById('instNameHeader').textContent = name;
+        document.getElementById('institutionNameDisplay').textContent = name;
+        document.getElementById('userAvatar').textContent = name.charAt(0).toUpperCase();
+        document.getElementById('issuer_name').value = name;
+
+        // Load credentials on page load
+        loadCredentials();
+
+        // Handle form submission
+        document.getElementById('issueForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const skill_name = document.getElementById('skill_name').value;
+            const issuer_name = document.getElementById('issuer_name').value;
+            const student_email = document.getElementById('student_email').value;
+            const description = document.getElementById('description').value;
+
+            try {
+                const response = await fetch('http://localhost:5000/issue-credential', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token
+                    },
+                    body: JSON.stringify({
+                        skill_name: skill_name,
+                        issuer_name: issuer_name,
+                        student_email: student_email,
+                        description: description
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    document.getElementById('message').innerHTML =
+                        `<div class="badge-success" style="padding: 15px; border-radius: 12px; margin-bottom: 20px;">
+                            <strong>✓ Successfully Recorded!</strong><br>
+                            <span style="font-size: 0.8rem; opacity: 0.8;">Block Mined: ${data.credential_hash}</span>
+                        </div>`;
+
+                    // Clear form
+                    document.getElementById('issueForm').reset();
+
+                    // Reload credentials
+                    loadCredentials();
+                } else {
+                    document.getElementById('message').innerHTML =
+                        `<div class="message error"><strong>Error:</strong> ${data.message}</div>`;
+                }
+            } catch (error) {
+                document.getElementById('message').innerHTML =
+                    `<div class="message error"><strong>Error:</strong> ${error.message}</div>`;
+            }
+        });
+
+        // Load credentials function
+        async function loadCredentials() {
+            try {
+                const response = await fetch('http://localhost:5000/my-issued-credentials', {
+                    headers: {
+                        'Authorization': 'Bearer ' + token
+                    }
+                });
+
+                const credentials = await response.json();
+
+                const tbody = document.getElementById('credentialsTableBody');
+
+                if (credentials.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 2rem;">No credentials issued yet.</td></tr>';
+                } else {
+                    tbody.innerHTML = credentials.map(cred => `
+                        <tr>
+                            <td>${cred.id}</td>
+                            <td>${cred.student_name}</td>
+                            <td><strong>${cred.skill_name}</strong></td>
+                            <td>${new Date(cred.issue_date).toLocaleDateString()}</td>
+                            <td><span class="badge badge-success">${cred.status}</span></td>
+                            <td class="hash-text" title="${cred.credential_hash}">${cred.credential_hash.substring(0, 16)}...</td>
+                        </tr>
+                    `).join('');
+
+                    // Update statistics
+                    document.getElementById('totalCredentials').textContent = credentials.length;
+
+                    // Calculate this month's credentials
+                    const thisMonth = new Date().getMonth();
+                    const thisYear = new Date().getFullYear();
+                    const monthCount = credentials.filter(cred => {
+                        const credDate = new Date(cred.issue_date);
+                        return credDate.getMonth() === thisMonth && credDate.getFullYear() === thisYear;
+                    }).length;
+                    document.getElementById('monthCredentials').textContent = monthCount;
+                }
+            } catch (error) {
+                console.error('Error loading credentials:', error);
+            }
+        }
+    </script>
+</body>
+
+</html>

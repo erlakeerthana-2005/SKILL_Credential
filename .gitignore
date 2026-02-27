@@ -1,0 +1,27 @@
+# Virtual Environments
+.venv/
+venv/
+env/
+
+# Python Cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Environment Variables
+.env
+.flaskenv
+
+# Database
+backend/instance/users.db
+instance/users.db
+*.sqlite
+*.sqlite3
+*.db
+
+# macOS System Files
+.DS_Store
+
+# IDEs
+.vscode/
+.idea/

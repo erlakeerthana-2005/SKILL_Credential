@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Public Skill Profile - Credential Portal</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="dashboard.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="script.js" defer></script>
+    <style>
+        .profile-container {
+            max-width: 900px;
+            margin: 60px auto;
+            padding: 0 20px;
+        }
+
+        .profile-header {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        .profile-avatar {
+            width: 100px;
+            height: 100px;
+            background: var(--accent);
+            border-radius: 50%;
+            margin: 0 auto 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            font-weight: 700;
+            color: var(--primary);
+            box-shadow: 0 0 30px var(--accent-glow);
+        }
+
+        .trust-notif {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid var(--success);
+            color: var(--success);
+            padding: 12px 24px;
+            border-radius: 100px;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="profile-container">
+        <div class="profile-header">
+            <div class="trust-notif">
+                <span>🛡️</span> Blockchain-Verified Skill Profile
+            </div>
+            <div class="profile-avatar" id="avatarLetter">S</div>
+            <h1 id="pubStudentName" style="color: white; font-size: 42px; margin-bottom: 8px;">Loading Profile...</h1>
+            <p id="pubSubtitle" style="color: var(--text-dim);">Digital Portfolio / Verified Accomplishments</p>
+        </div>
+
+        <div class="content-section">
+            <div class="section-head">
+                <h2>Verified Credentials</h2>
+            </div>
+            <div class="card-grid" id="publicCredGrid">
+                <!-- Data loaded via JS -->
+            </div>
+        </div>
+
+        <div style="text-align: center; margin-top: 40px;">
+            <p style="color: var(--text-dim); font-size: 13px;">Securely Anchored by the Global Skill Ledger • <a
+                    href="verify.html" class="link">Verify Manually</a></p>
+        </div>
+    </div>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const studentId = urlParams.get('id');
+
+        async function fetchPublicProfile() {
+            if (!studentId) {
+                document.getElementById('pubStudentName').textContent = "Invalid Profile Link";
+                return;
+            }
+
+            try {
+                const response = await fetch(`http://localhost:5000/public-profile/${studentId}`);
+                const data = await response.json();
+
+                if (response.ok) {
+                    document.getElementById('pubStudentName').textContent = data.student_name;
+                    document.getElementById('avatarLetter').textContent = data.student_name.charAt(0).toUpperCase();
+
+                    const grid = document.getElementById('publicCredGrid');
+                    grid.innerHTML = '';
+
+                    if (data.credentials.length === 0) {
+                        grid.innerHTML = '<div class="card"><p>No verified credentials linked to this profile yet.</p></div>';
+                        return;
+                    }
+
+                    data.credentials.forEach(cred => {
+                        const date = new Date(cred.issue_date).toLocaleDateString();
+                        const typeBadge = cred.type === 'external' ?
+                            '<span class="badge badge-external">External</span>' :
+                            '<span class="badge badge-internal">Internal</span>';
+
+                        const card = `
+                            <div class="card">
+                                <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px;">
+                                    <h3 class="card-title" style="margin: 0;">${cred.skill_name}</h3>
+                                    ${typeBadge}
+                                </div>
+                                <p class="card-description">Issued by: ${cred.issuer_name}</p>
+                                <div class="card-meta" style="margin-top: 24px;">
+                                    <span>${date}</span>
+                                    <span class="badge badge-success">✓ Verified</span>
+                                </div>
+                                <div class="hash-text" style="font-size: 10px; margin-top: 15px; border-top: 1px solid var(--glass-border); padding-top: 10px;">
+                                    ${cred.credential_hash}
+                                </div>
+                            </div>
+                        `;
+                        grid.insertAdjacentHTML('beforeend', card);
+                    });
+                } else {
+                    document.getElementById('pubStudentName').textContent = "Profile Not Found";
+                }
+            } catch (err) {
+                console.error(err);
+                document.getElementById('pubStudentName').textContent = "Server Connection Error";
+            }
+        }
+
+        fetchPublicProfile();
+    </script>
+</body>
+
+</html>

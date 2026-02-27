@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Skill Credential Aggregator</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="dashboard.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="script.js" defer></script>
+    <style>
+        .badge-student {
+            background: rgba(59, 130, 246, 0.1);
+            color: #3b82f6;
+        }
+
+        .badge-institution {
+            background: rgba(167, 139, 250, 0.1);
+            color: #a78bfa;
+        }
+
+        .badge-admin {
+            background: rgba(245, 158, 11, 0.1);
+            color: #f59e0b;
+        }
+
+        .tab-btn {
+            background: transparent;
+            border: 1px solid var(--glass-border);
+            color: var(--text-dim);
+            padding: 10px 24px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: var(--transition);
+        }
+
+        .tab-btn.active {
+            background: var(--accent);
+            color: var(--primary);
+            border-color: var(--accent);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="dashboard">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <img src="logo.png" alt="Logo" class="sidebar-logo">
+                <div class="sidebar-title">Skill Aggregator</div>
+            </div>
+
+            <div class="user-profile">
+                <div class="user-avatar" style="background: var(--info);">A</div>
+                <div class="user-details">
+                    <h3 id="adminNameHeader">Administrator</h3>
+                    <p>Root Access</p>
+                </div>
+            </div>
+
+            <nav class="nav-menu">
+                <a href="#" class="nav-link tab-link active" onclick="switchTab('credentials')">
+                    <span class="nav-icon">📜</span>
+                    All Credentials
+                </a>
+                <a href="#" class="nav-link tab-link" onclick="switchTab('users')">
+                    <span class="nav-icon">👥</span>
+                    User Management
+                </a>
+                <a href="#" class="nav-link tab-link" onclick="switchTab('analytics')">
+                    <span class="nav-icon">📈</span>
+                    System Analytics
+                </a>
+                <a href="verify.html" class="nav-link">
+                    <span class="nav-icon">🛡️</span>
+                    Verify portal
+                </a>
+            </nav>
+
+            <button class="logout-btn-sidebar" onclick="logout()">Logout Securely</button>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="page-header">
+                <h1>Global Administration</h1>
+                <p>System-wide monitoring, user governance, and federated learning management.</p>
+            </div>
+
+            <!-- Statistics Grid -->
+            <div class="dashboard-grid">
+                <div class="stat-card info">
+                    <div class="stat-icon">👥</div>
+                    <div class="stat-value" id="totalUsers">0</div>
+                    <div class="stat-label">Total Users</div>
+                </div>
+                <div class="stat-card gold">
+                    <div class="stat-icon">📜</div>
+                    <div class="stat-value" id="totalCredentials">0</div>
+                    <div class="stat-label">Total Credentials</div>
+                </div>
+                <div class="stat-card purple">
+                    <div class="stat-icon">🏛️</div>
+                    <div class="stat-value" id="totalInstitutions">0</div>
+                    <div class="stat-label">Institutions</div>
+                </div>
+                <div class="stat-card success">
+                    <div class="stat-icon">🎓</div>
+                    <div class="stat-value" id="totalStudents">0</div>
+                    <div class="stat-label">Students</div>
+                </div>
+            </div>
+
+            <!-- Content Area -->
+            <div class="content-section">
+                <!-- Credentials Tab -->
+                <div id="credentials-tab" class="tab-content active">
+                    <div class="section-head">
+                        <h2>Credential Registry</h2>
+                    </div>
+
+                    <div style="display: flex; gap: 16px; margin-bottom: 24px;">
+                        <input type="text" id="credentialSearch" placeholder="Search by skill, issuer, or hash..."
+                            onkeyup="filterCredentials()" style="flex: 1;">
+                        <select id="credentialFilter" onchange="filterCredentials()" style="width: 200px;">
+                            <option value="all">All Sources</option>
+                            <option value="internal">Internal Only</option>
+                            <option value="external">External Only</option>
+                        </select>
+                    </div>
+
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Student</th>
+                                    <th>Issuer</th>
+                                    <th>Skill</th>
+                                    <th>Source</th>
+                                    <th>Date</th>
+                                    <th>Hash</th>
+                                </tr>
+                            </thead>
+                            <tbody id="credentialsTableBody">
+                                <tr>
+                                    <td colspan="7" style="text-align: center; padding: 2rem;">Loading ledger...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Users Tab -->
+                <div id="users-tab" class="tab-content">
+                    <div class="section-head">
+                        <h2>User Governance</h2>
+                    </div>
+
+                    <div style="display: flex; gap: 16px; margin-bottom: 24px;">
+                        <input type="text" id="userSearch" placeholder="Search by name or email..."
+                            onkeyup="filterUsers()" style="flex: 1;">
+                        <select id="roleFilter" onchange="filterUsers()" style="width: 200px;">
+                            <option value="all">All Roles</option>
+                            <option value="student">Students Only</option>
+                            <option value="institution">Institutions Only</option>
+                            <option value="admin">Admins Only</option>
+                        </select>
+                    </div>
+
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                    <th>Role</th>
+                                    <th>Joined At</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="usersTableBody">
+                                <tr>
+                                    <td colspan="6" style="text-align: center; padding: 2rem;">Loading database...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Analytics Tab -->
+                <div id="analytics-tab" class="tab-content">
+                    <div class="section-head">
+                        <h2>System Insights</h2>
+                    </div>
+
+                    <div class="dashboard-grid" style="margin-bottom: 32px;">
+                        <div class="stat-card">
+                            <div class="stat-label">Weekly Velocity</div>
+                            <div class="stat-value" id="weekCredentials" style="font-size: 24px; color: var(--info);">0
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Monthly Growth</div>
+                            <div class="stat-value" id="monthCredentials"
+                                style="font-size: 24px; color: var(--success);">0</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Top Issuer</div>
+                            <div class="stat-value" id="topInstitution" style="font-size: 18px; color: var(--accent);">
+                                --</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Avg / Day</div>
+                            <div class="stat-value" id="avgPerDay" style="font-size: 24px;">0</div>
+                        </div>
+                    </div>
+
+                    <div
+                        style="background: rgba(108, 92, 231, 0.05); border: 1px solid rgba(108, 92, 231, 0.2); padding: 24px; border-radius: 16px; margin-bottom: 32px;">
+                        <h3 style="color: #6c5ce7; margin-bottom: 8px;">🔄 Federated Learning Operations</h3>
+                        <p style="font-size: 14px; color: var(--text-dim); margin-bottom: 20px;">Aggregate decentralized
+                            learning patterns into global recommendations.</p>
+                        <button id="flBtn" onclick="runFL()" class="action-btn"
+                            style="background: #6c5ce7; border: none; color: white;">
+                            Execute Federated Update
+                        </button>
+                        <div id="flStatus"
+                            style="margin-top: 15px; font-size: 0.9rem; color: #6c5ce7; font-weight: 600;"></div>
+                    </div>
+
+                    <h3>Public Ledger Activity</h3>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Timestamp</th>
+                                    <th>Protocol</th>
+                                    <th>Details</th>
+                                </tr>
+                            </thead>
+                            <tbody id="activityTableBody">
+                                <tr>
+                                    <td colspan="3" style="text-align: center; padding: 2rem;">Loading stream...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Check authentication
+        const token = localStorage.getItem('token');
+        const role = localStorage.getItem('role');
+        const name = localStorage.getItem('name');
+
+        if (!token || role !== 'admin') {
+            showToast("Restricted Access. Root privileges required.", "error");
+            setTimeout(() => window.location.href = 'login.html', 1500);
+        }
+
+        // Display welcome message
+        document.getElementById('adminNameHeader').textContent = name || 'Administrator';
+
+        // Store data globally for filtering
+        let allCredentials = [];
+        let allUsers = [];
+
+        // Load all data on page load
+        loadAllData();
+
+        async function loadAllData() {
+            await loadCredentials();
+            await loadUsers();
+            calculateAnalytics();
+        }
+
+        // Load all credentials
+        async function loadCredentials() {
+            try {
+                const response = await fetch('http://localhost:5000/credentials');
+                allCredentials = await response.json();
+
+                displayCredentials(allCredentials);
+                document.getElementById('totalCredentials').textContent = allCredentials.length;
+            } catch (error) {
+                console.error('Error loading credentials:', error);
+            }
+        }
+
+        // Display credentials in table
+        function displayCredentials(credentials) {
+            const tbody = document.getElementById('credentialsTableBody');
+
+            if (credentials.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 2rem;">No credentials found.</td></tr>';
+            } else {
+                tbody.innerHTML = credentials.map(cred => `
+                    <tr>
+                        <td>${cred.id}</td>
+                        <td style="font-weight: 600;">UID: ${cred.student_id}</td>
+                        <td style="color: var(--text-dim);">${cred.issuer_name}</td>
+                        <td style="color: var(--accent); font-weight: 700;">${cred.skill_name}</td>
+                        <td>
+                            <span class="badge badge-${cred.type}">${cred.type.toUpperCase()}</span>
+                        </td>
+                        <td>${new Date(cred.issue_date).toLocaleDateString()}</td>
+                        <td class="hash-text" title="${cred.credential_hash}">${cred.credential_hash.substring(0, 10)}...</td>
+                    </tr>
+                `).join('');
+            }
+        }
+
+        // Load all users
+        async function loadUsers() {
+            try {
+                const response = await fetch('http://localhost:5000/users', {
+                    headers: {
+                        'Authorization': 'Bearer ' + token
+                    }
+                });
+                allUsers = await response.json();
+
+                displayUsers(allUsers);
+
+                // Update statistics
+                document.getElementById('totalUsers').textContent = allUsers.length;
+                document.getElementById('totalInstitutions').textContent =
+                    allUsers.filter(u => u.role === 'institution').length;
+                document.getElementById('totalStudents').textContent =
+                    allUsers.filter(u => u.role === 'student').length;
+            } catch (error) {
+                console.error('Error loading users:', error);
+            }
+        }
+
+        // Display users in table
+        function displayUsers(users) {
+            const tbody = document.getElementById('usersTableBody');
+
+            if (users.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 2rem;">No users found.</td></tr>';
+            } else {
+                tbody.innerHTML = users.map(user => `
+                    <tr>
+                        <td>${user.id}</td>
+                        <td style="font-weight: 600;">${user.name}</td>
+                        <td>${user.email}</td>
+                        <td><span class="badge badge-${user.role}">${user.role.toUpperCase()}</span></td>
+                        <td>${new Date(user.created_at).toLocaleDateString()}</td>
+                        <td>
+                            <button class="action-btn" onclick="deleteUser(${user.id}, '${user.name}')" 
+                                style="padding: 6px 12px; font-size: 11px; background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid #ef4444;">
+                                Delete
+                            </button>
+                        </td>
+                    </tr>
+                `).join('');
+            }
+        }
+
+        // Calculate analytics
+        function calculateAnalytics() {
+            const now = new Date();
+            const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+            const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+
+            // Credentials this week
+            const weekCount = allCredentials.filter(cred =>
+                new Date(cred.issue_date) >= weekAgo
+            ).length;
+            document.getElementById('weekCredentials').textContent = weekCount;
+
+            // Credentials this month
+            const monthCount = allCredentials.filter(cred =>
+                new Date(cred.issue_date) >= monthAgo
+            ).length;
+            document.getElementById('monthCredentials').textContent = monthCount;
+
+            // Average per day
+            const avgPerDay = allCredentials.length > 0 ?
+                (allCredentials.length / 30).toFixed(1) : 0;
+            document.getElementById('avgPerDay').textContent = avgPerDay;
+
+            // Most active institution
+            const institutionCounts = {};
+            allCredentials.forEach(cred => {
+                institutionCounts[cred.issuer_name] = (institutionCounts[cred.issuer_name] || 0) + 1;
+            });
+            const topInst = Object.keys(institutionCounts).reduce((a, b) =>
+                institutionCounts[a] > institutionCounts[b] ? a : b, '-'
+            );
+            document.getElementById('topInstitution').textContent = topInst;
+
+            // Recent activity
+            const recentActivity = allCredentials.slice(-10).reverse();
+            const activityBody = document.getElementById('activityTableBody');
+            activityBody.innerHTML = recentActivity.map(cred => `
+                <tr>
+                    <td>${new Date(cred.issue_date).toLocaleDateString()}</td>
+                    <td>Credential Issued</td>
+                    <td>${cred.skill_name} by ${cred.issuer_name}</td>
+                </tr>
+            `).join('');
+        }
+
+        // Filter credentials
+        function filterCredentials() {
+            const searchTerm = document.getElementById('credentialSearch').value.toLowerCase();
+            const filter = document.getElementById('credentialFilter').value;
+
+            let filtered = allCredentials.filter(cred =>
+                cred.skill_name.toLowerCase().includes(searchTerm) ||
+                cred.issuer_name.toLowerCase().includes(searchTerm) ||
+                cred.credential_hash.toLowerCase().includes(searchTerm)
+            );
+
+            if (filter !== 'all') {
+                filtered = filtered.filter(cred => cred.type === filter);
+            }
+
+            displayCredentials(filtered);
+        }
+
+        // Filter users
+        function filterUsers() {
+            const searchTerm = document.getElementById('userSearch').value.toLowerCase();
+            const roleFilter = document.getElementById('roleFilter').value;
+
+            let filtered = allUsers.filter(user =>
+                user.name.toLowerCase().includes(searchTerm) ||
+                user.email.toLowerCase().includes(searchTerm)
+            );
+
+            if (roleFilter !== 'all') {
+                filtered = filtered.filter(user => user.role === roleFilter);
+            }
+
+            displayUsers(filtered);
+        }
+
+        // Switch tabs
+        function switchTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.tab-link').forEach(link => {
+                link.classList.remove('active');
+            });
+
+            // Show selected tab
+            document.getElementById(tabName + '-tab').classList.add('active');
+
+            // Highlight the correct sidebar link
+            const links = document.querySelectorAll('.tab-link');
+            links.forEach(link => {
+                if (link.getAttribute('onclick').includes(tabName)) {
+                    link.classList.add('active');
+                }
+            });
+        }
+
+        // Module 4: Run Federated Learning
+        async function runFL() {
+            const btn = document.getElementById('flBtn');
+            const status = document.getElementById('flStatus');
+
+            btn.disabled = true;
+            btn.innerHTML = '<span>⏳</span> Processing...';
+            status.textContent = 'Simulating local training on decentralized nodes...';
+
+            try {
+                const response = await fetch('http://localhost:5000/admin/train-fl', {
+                    method: 'POST',
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                const data = await response.json();
+
+                if (response.ok) {
+                    status.innerHTML = `<span style="color: green;">✓ Round ${data.data.round} Complete!</span> New Trending Skill: <strong>${data.data.top_category}</strong>`;
+                }
+            } catch (err) {
+                status.textContent = 'Error: Failed to connect to FL engine.';
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<span>🔄</span> Trigger Federated Update';
+            }
+        }
+
+        async function deleteUser(userId, userName) {
+            if (!confirm(`Are you sure you want to permanently delete user "${userName}"? This will also remove all their credentials.`)) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`http://localhost:5000/users/${userId}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                const data = await response.json();
+
+                if (response.ok) {
+                    showToast(data.message, "success");
+                    loadUsers(); // Refresh the list
+                } else {
+                    showToast(data.message, "error");
+                }
+            } catch (err) {
+                console.error("Delete failed:", err);
+                showToast("System error: Could not complete deletion.", "error");
+            }
+        }
+    </script>
+</body>
+
+</html>

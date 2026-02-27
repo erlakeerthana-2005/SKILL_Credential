@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Dashboard - Skill Credential Aggregator</title>
+    <link rel="stylesheet" href="dashboard.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="script.js" defer></script>
+</head>
+
+<body>
+    <div class="dashboard">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <img src="logo.png" alt="Logo" class="sidebar-logo">
+                <div class="sidebar-title">Skill Aggregator</div>
+            </div>
+
+            <div class="user-profile">
+                <div class="user-avatar" id="userAvatar">S</div>
+                <div class="user-details">
+                    <h3 id="userName">Student Name</h3>
+                    <p>Student Account</p>
+                </div>
+            </div>
+
+            <nav class="nav-menu">
+                <a href="#" class="nav-link active">
+                    <span class="nav-icon">📊</span>
+                    Dashboard
+                </a>
+                <a href="#" class="nav-link">
+                    <span class="nav-icon">🎓</span>
+                    My Credentials
+                </a>
+                <a href="verify.html" class="nav-link">
+                    <span class="nav-icon">🛡️</span>
+                    Verify Skills
+                </a>
+                <a href="#" class="nav-link">
+                    <span class="nav-icon">⚙️</span>
+                    Settings
+                </a>
+            </nav>
+
+            <button class="logout-btn-sidebar" onclick="logout()">Logout Securely</button>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="page-header" style="display: flex; justify-content: space-between; align-items: start;">
+                <div>
+                    <h1>Academic Journey</h1>
+                    <p id="dashboardSubtitle" style="color: var(--text-dim);">Enrolled Institution: <span
+                            id="enrolledInst" style="color: var(--accent); font-weight: 600;">--</span></p>
+                </div>
+                <button class="action-btn" onclick="copyProfileLink()"
+                    style="background: rgba(212, 175, 55, 0.1); color: var(--accent); border: 1px solid var(--accent);">🔗
+                    Share Verified Profile</button>
+            </div>
+
+            <!-- Stats Grid -->
+            <div class="dashboard-grid">
+                <div class="stat-card gold">
+                    <div class="stat-icon">🎓</div>
+                    <div class="stat-value" id="totalCreds">--</div>
+                    <div class="stat-label">Verified credentials</div>
+                </div>
+
+                <div class="stat-card success">
+                    <div class="stat-icon">✓</div>
+                    <div class="stat-value">8</div>
+                    <div class="stat-label">Courses Completed</div>
+                </div>
+
+                <div class="stat-card info">
+                    <div class="stat-icon">💡</div>
+                    <div class="stat-value">24</div>
+                    <div class="stat-label">Skills Acquired</div>
+                </div>
+
+                <div class="stat-card purple">
+                    <div class="stat-icon">🏆</div>
+                    <div class="stat-value">5</div>
+                    <div class="stat-label">Achievements</div>
+                </div>
+            </div>
+
+            <!-- Recent Credentials -->
+            <div class="content-section">
+                <div class="section-head">
+                    <h2>Recent Credentials</h2>
+                    <div style="display: flex; gap: 12px;">
+                        <button class="action-btn" onclick="openModal()"
+                            style="background: var(--info); color: white;">+ Add External Asset</button>
+                        <button class="action-btn">View All</button>
+                    </div>
+                </div>
+                <div class="card-grid" id="credentialGrid">
+                    <!-- Loading state -->
+                    <div class="card">
+                        <p>Loading your credentials...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Federated Learning Recommendations -->
+            <div class="content-section"
+                style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.05) 0%, transparent 100%); border-color: rgba(99, 102, 241, 0.2);">
+                <div class="section-head">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <h2 style="margin: 0;">Recommended for You</h2>
+                        <span class="badge badge-info">AI Powered (FL)</span>
+                    </div>
+                </div>
+                <div class="card-grid" id="recommendationGrid">
+                    <!-- Recommendations loaded here -->
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- External Credential Modal -->
+    <div id="externalModal" class="modal">
+        <div class="modal-content">
+            <button class="close-btn" onclick="closeModal()">&times;</button>
+            <div class="modal-header">
+                <h2>Add External Asset</h2>
+                <p>Manually record skills acquired from other platforms or institutions.</p>
+            </div>
+
+            <div class="form-group">
+                <label for="extSkill">Skill Name</label>
+                <input type="text" id="extSkill" placeholder="e.g. Advanced Machine Learning">
+            </div>
+
+            <div class="form-group">
+                <label for="extIssuer">Issuing Authority / Website</label>
+                <input type="text" id="extIssuer" placeholder="e.g. Coursera, Udemy, edX">
+            </div>
+
+            <div style="margin-top: 32px;">
+                <button class="action-btn" onclick="submitExternalCred()" style="width: 100%; padding: 16px;">💾 Save
+                    Asset to Portal</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Get user data from localStorage
+        const userData = {
+            id: localStorage.getItem('user_id'),
+            name: localStorage.getItem('name'),
+            role: localStorage.getItem('role')
+        };
+        const token = localStorage.getItem('token');
+
+        if (!token) {
+            window.location.href = 'login.html';
+        }
+
+        if (userData.name) {
+            document.getElementById('userName').textContent = userData.name;
+            document.getElementById('userAvatar').textContent = userData.name.charAt(0).toUpperCase();
+        }
+
+        // Initialize info from localStorage
+        const userName = localStorage.getItem('name') || 'Student';
+        const institution = localStorage.getItem('institution') || 'Not Enrolled';
+        document.getElementById('userName').textContent = userName;
+        document.getElementById('enrolledInst').textContent = institution;
+
+        // Fetch Credentials
+        async function fetchMyCredentials() {
+            try {
+                const response = await fetch('http://localhost:5000/my-credentials', {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                const credentials = await response.json();
+
+                if (response.ok) {
+                    updateDashboard(credentials);
+                }
+            } catch (err) {
+                console.error("Failed to fetch credentials", err);
+            }
+        }
+
+        function updateDashboard(credentials) {
+            // Update Stats
+            document.getElementById('totalCreds').textContent = credentials.length;
+
+            // Render Cards
+            const grid = document.getElementById('credentialGrid');
+            grid.innerHTML = ''; // Clear placeholders
+
+            if (credentials.length === 0) {
+                grid.innerHTML = '<div class="card"><p>No credentials issued to you yet.</p></div>';
+                return;
+            }
+
+            credentials.forEach(cred => {
+                const date = new Date(cred.issue_date).toLocaleDateString();
+                const typeBadge = cred.type === 'external' ?
+                    '<span class="badge badge-external">External</span>' :
+                    '<span class="badge badge-internal">Internal</span>';
+
+                const card = `
+                    <div class="card">
+                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px;">
+                            <h3 class="card-title" style="margin: 0;">${cred.skill_name}</h3>
+                            ${typeBadge}
+                        </div>
+                        <p class="card-description">Issued by: ${cred.issuer_name}</p>
+                        <div class="card-meta" style="margin-top: 20px;">
+                            <span>Issued: ${date}</span>
+                            <span class="badge badge-success">${cred.status}</span>
+                        </div>
+                        <div class="hash-text" style="word-break: break-all; margin-top: 15px; font-size: 10px; border-top: 1px solid var(--glass-border); padding-top: 10px;">
+                            ${cred.credential_hash}
+                        </div>
+                    </div>
+                `;
+                grid.insertAdjacentHTML('beforeend', card);
+            });
+        }
+
+        // Modal Controls
+        function openModal() {
+            document.getElementById('externalModal').style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('externalModal').style.display = 'none';
+        }
+
+        async function submitExternalCred() {
+            const skill = document.getElementById('extSkill').value.trim();
+            const issuer = document.getElementById('extIssuer').value.trim();
+
+            if (!skill || !issuer) {
+                showToast("All fields are required", "error");
+                return;
+            }
+
+            try {
+                const response = await fetch('http://localhost:5000/add-external-credential', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token
+                    },
+                    body: JSON.stringify({
+                        skill_name: skill,
+                        issuer_name: issuer
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    showToast("External asset saved successfully!", "success");
+                    closeModal();
+                    // Clear fields
+                    document.getElementById('extSkill').value = '';
+                    document.getElementById('extIssuer').value = '';
+                    // Refresh
+                    fetchMyCredentials();
+                } else {
+                    showToast(data.message, "error");
+                }
+            } catch (err) {
+                showToast("Network error. Please try again.", "error");
+            }
+        }
+
+        // Fetch Recommendations (Module 4: Federated Learning)
+        async function fetchRecommendations() {
+            try {
+                const response = await fetch('http://localhost:5000/recommend-skills', {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                const data = await response.json();
+
+                if (response.ok) {
+                    const grid = document.getElementById('recommendationGrid');
+                    grid.innerHTML = '';
+
+                    data.recommendations.forEach(rec => {
+                        const card = `
+                            <div class="card" style="border-top: 4px solid #6c5ce7;">
+                                <h3 class="card-title">${rec.skill}</h3>
+                                <p class="card-description">${rec.reason}</p>
+                                <div class="card-meta">
+                                    <span style="color: #6c5ce7; font-weight: bold;">Match: ${rec.confidence}</span>
+                                    <button class="nav-link" style="padding: 4px 12px; font-size: 0.8rem; border: 1px solid #6c5ce7; color: #6c5ce7; background: transparent; border-radius: 4px; cursor: pointer;">Explore</button>
+                                </div>
+                            </div>
+                        `;
+                        grid.insertAdjacentHTML('beforeend', card);
+                    });
+                }
+            } catch (err) {
+                console.error("Failed to fetch recommendations", err);
+            }
+        }
+
+        function logout() {
+            localStorage.clear();
+            window.location.href = 'login.html';
+        }
+
+        function copyProfileLink() {
+            const userId = localStorage.getItem('user_id');
+            const link = window.location.origin + window.location.pathname.replace('student-dashboard.html', 'public-profile.html') + '?id=' + userId;
+
+            navigator.clipboard.writeText(link).then(() => {
+                showToast("Profile link copied to clipboard!", "success");
+            }).catch(err => {
+                showToast("Manual Link: " + link, "info");
+            });
+        }
+
+        fetchMyCredentials();
+        fetchRecommendations();
+    </script>
+    <script src="script.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Register - Skill Credential Aggregator</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+  <div class="container" style="max-width: 480px;">
+    <img src="logo.png" alt="Skill Credential Aggregator Logo" class="logo">
+    <h2>Join the System</h2>
+    <p class="subtitle">Securely aggregate and verify your skill credentials</p>
+
+    <div id="registrationForm">
+      <div class="input-group">
+        <label for="name">Full Name</label>
+        <input id="name" type="text" placeholder="John Doe" required>
+      </div>
+
+      <div class="input-group">
+        <label for="email">Email Address</label>
+        <input id="email" type="email" placeholder="name@domain.com" required>
+      </div>
+
+      <div class="input-group">
+        <label for="password">Create Password</label>
+        <input id="password" type="password" placeholder="••••••••" required>
+      </div>
+
+      <div class="input-group">
+        <label for="confirm_password">Confirm Password</label>
+        <input id="confirm_password" type="password" placeholder="••••••••" required>
+      </div>
+
+      <div class="input-group">
+        <label for="role">User Role</label>
+        <select id="role" onchange="toggleInstituteField()">
+          <option value="student">Student</option>
+          <option value="institution">Institution</option>
+        </select>
+      </div>
+
+      <div class="input-group" id="instField">
+        <label for="institution_name">Enrolled Institution Name</label>
+        <input id="institution_name" type="text" placeholder="e.g. Global Institute of Technology">
+        <p style="font-size: 11px; color: var(--text-dim); margin-top: 5px;">Link your account to your institute for
+          verified credentials.</p>
+      </div>
+
+      <button id="regBtn" onclick="register()">Create Secure Account</button>
+    </div>
+
+    <!-- OTP Section (Hidden by default) -->
+    <div id="otpSection" style="display: none; animation: fadeIn 0.5s ease;">
+      <p class="subtitle" style="margin-bottom: 20px;">We've sent a 6-digit code to your email. Check your inbox (or
+        console logs).</p>
+      <div class="input-group">
+        <label for="otp">Enter 6-Digit OTP</label>
+        <input id="otp" type="text" maxlength="6" placeholder="000000"
+          style="text-align: center; letter-spacing: 12px; font-size: 24px;">
+      </div>
+      <button onclick="verifyOTP()" style="background: var(--success); color: white;">Verify & Complete
+        Registration</button>
+      <p class="link-text"><a href="#" onclick="showRegisterForm()" class="link">Change Email</a></p>
+    </div>
+
+    <p class="link-text">Already have an account? <a href="login.html" class="link">Sign in</a></p>
+
+    <script src="script.js"></script>
+  </div>
+</body>
+
+</html>

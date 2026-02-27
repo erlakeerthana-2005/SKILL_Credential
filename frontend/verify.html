@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify Credential - Skill Aggregator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        body {
+            background: radial-gradient(circle at top right, #1a1c2c, #0d0e1b);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .verify-container {
+            max-width: 600px;
+            width: 90%;
+            padding: 40px;
+            animation: containerReveal 1s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+
+        .result-card {
+            display: none;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            margin-top: 30px;
+            animation: slideUp 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+
+        .verified-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: #10b981;
+            font-weight: 700;
+            margin-bottom: 24px;
+            font-size: 1.1rem;
+        }
+
+        .data-grid {
+            display: grid;
+            grid-template-columns: 100px 1fr;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .label {
+            color: var(--text-dim);
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .value {
+            color: var(--text);
+            font-weight: 500;
+        }
+
+        .blockchain-footer {
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding-top: 20px;
+            font-family: monospace;
+            font-size: 0.8rem;
+            color: var(--accent);
+            opacity: 0.8;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container verify-container">
+        <div style="text-align: center; margin-bottom: 40px;">
+            <img src="logo.png" alt="Logo" style="height: 60px; margin-bottom: 20px;">
+            <h1>Trust Protocol Verification</h1>
+            <p style="color: var(--text-dim);">Verify the cryptographic authenticity of any credential instantly.</p>
+        </div>
+
+        <div class="input-group">
+            <label for="hashInput">Cryptographic Hash (SHA-256)</label>
+            <div style="display: flex; gap: 12px;">
+                <input type="text" id="hashInput" placeholder="Enter secure hash sequence..." style="margin: 0;">
+                <button class="action-btn" onclick="verify()" style="white-space: nowrap;">🛡️ Verify Asset</button>
+            </div>
+        </div>
+
+        <div id="loader" style="display: none; text-align: center; color: var(--accent); margin-top: 20px;">
+            <span style="display: inline-block; animation: spin 1s linear infinite; margin-right: 10px;">🛡️</span>
+            Accessing Decentralized Ledger...
+        </div>
+        <div id="errorMsg"
+            style="color: #ef4444; text-align: center; margin-top: 20px; font-weight: 600; display: none;"></div>
+
+        <div id="resultCard" class="result-card">
+            <div class="verified-header">
+                <span style="font-size: 1.5rem;">✅</span>
+                BLOCKCHAIN VERIFIED RECORD
+            </div>
+
+            <div class="data-grid">
+                <div class="label">Skill Asset</div>
+                <div class="value" id="resSkill"></div>
+
+                <div class="label">Recipient</div>
+                <div class="value" id="resStudent"></div>
+
+                <div class="label">Authority</div>
+                <div class="value" id="resIssuer"></div>
+
+                <div class="label">Date Signed</div>
+                <div class="value" id="resDate"></div>
+            </div>
+
+            <div class="blockchain-footer">
+                <div>LEDGER_INDEX: #<span id="resBlock"></span></div>
+                <div>BLOCK_TIMESTAMP: <span id="resTime"></span></div>
+                <div style="margin-top: 10px; color: #10b981;">✓ Status: Cryptographically Secure & Immutable</div>
+            </div>
+        </div>
+
+        <div style="text-align: center; margin-top: 40px;">
+            <a href="login.html"
+                style="color: var(--accent); text-decoration: none; font-size: 0.9rem; font-weight: 600;">← Back to
+                Portal</a>
+        </div>
+    </div>
+
+    <script>
+        async function verify() {
+            const hash = document.getElementById('hashInput').value.trim();
+            const resultCard = document.getElementById('resultCard');
+            const errorMsg = document.getElementById('errorMsg');
+            const loader = document.getElementById('loader');
+
+            if (!hash) return;
+
+            // Reset UI
+            resultCard.style.display = 'none';
+            errorMsg.style.display = 'none';
+            loader.style.display = 'block';
+
+            try {
+                const response = await fetch(`http://localhost:5000/verify-credential/${hash}`);
+                const data = await response.json();
+
+                loader.style.display = 'none';
+
+                if (response.ok && data.verified) {
+                    document.getElementById('resSkill').textContent = data.data.skill;
+                    document.getElementById('resStudent').textContent = data.data.student;
+                    document.getElementById('resIssuer').textContent = data.data.issuer;
+                    document.getElementById('resDate').textContent = new Date(data.data.issue_date).toLocaleDateString();
+                    document.getElementById('resBlock').textContent = data.data.blockchain_block;
+                    document.getElementById('resTime').textContent = data.data.blockchain_timestamp;
+
+                    resultCard.style.display = 'block';
+                } else {
+                    errorMsg.textContent = data.message || "Credential not found.";
+                    errorMsg.style.display = 'block';
+                }
+            } catch (err) {
+                loader.style.display = 'none';
+                errorMsg.textContent = "Error connecting to verification server.";
+                errorMsg.style.display = 'block';
+            }
+        }
+    </script>
+
+</body>
+
+</html>
