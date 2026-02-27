@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Blockchain-Based Skill Credential Aggregator System
 ## 🌌 Full Implementation (Modules 1-6) | Premium Glassmorphic UI
 
@@ -439,3 +440,6 @@ You can view it using DB Browser for SQLite or any SQLite viewer.
 
 ---
 
+=======
+# SKILL_Credential
+>>>>>>> bd264e9b235ea9c85cd6da1597558d925b7a7dfc
