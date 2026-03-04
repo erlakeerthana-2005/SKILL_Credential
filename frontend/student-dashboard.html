@@ -74,19 +74,19 @@
 
                 <div class="stat-card success">
                     <div class="stat-icon">✓</div>
-                    <div class="stat-value">8</div>
+                    <div class="stat-value" id="coursesCount">--</div>
                     <div class="stat-label">Courses Completed</div>
                 </div>
 
                 <div class="stat-card info">
                     <div class="stat-icon">💡</div>
-                    <div class="stat-value">24</div>
+                    <div class="stat-value" id="skillsCount">--</div>
                     <div class="stat-label">Skills Acquired</div>
                 </div>
 
                 <div class="stat-card purple">
                     <div class="stat-icon">🏆</div>
-                    <div class="stat-value">5</div>
+                    <div class="stat-value" id="achievementsCount">--</div>
                     <div class="stat-label">Achievements</div>
                 </div>
             </div>
@@ -194,6 +194,14 @@
         function updateDashboard(credentials) {
             // Update Stats
             document.getElementById('totalCreds').textContent = credentials.length;
+
+            // Calculate real values from credentials to remove fake values
+            const internalCreds = credentials.filter(c => c.type === 'internal').length;
+            const externalCreds = credentials.filter(c => c.type === 'external').length;
+
+            document.getElementById('coursesCount').textContent = internalCreds;
+            document.getElementById('skillsCount').textContent = credentials.length;
+            document.getElementById('achievementsCount').textContent = externalCreds;
 
             // Render Cards
             const grid = document.getElementById('credentialGrid');

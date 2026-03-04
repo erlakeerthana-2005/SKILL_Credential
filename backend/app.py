@@ -42,6 +42,19 @@ mail = Mail(app) # Initialize Flask-Mail
 # Create database tables
 with app.app_context():
     db.create_all()
+    
+    # Rebuild in-memory blockchain from existing credentials to survive restarts
+    if len(skill_blockchain.chain) == 1:
+        existing_creds = Credential.query.order_by(Credential.issue_date).all()
+        for cred in existing_creds:
+            student = User.query.get(cred.student_id)
+            skill_blockchain.add_block({
+                "credential_id": cred.id,
+                "credential_hash": cred.credential_hash,
+                "student": student.name if student else "N/A",
+                "issuer": cred.issuer_name,
+                "skill": cred.skill_name
+            })
 
 # ============================================
 # MODULE 1: USER REGISTRATION & AUTHENTICATION
@@ -325,6 +338,15 @@ def add_external_credential():
     
     db.session.add(new_credential)
     db.session.commit()
+    
+    # Add to Blockchain for external credentials as well
+    skill_blockchain.add_block({
+        "credential_id": new_credential.id,
+        "credential_hash": credential_hash,
+        "student": user.name,
+        "issuer": data['issuer_name'],
+        "skill": data['skill_name']
+    })
     
     return jsonify({
         "message": "External credential added successfully",

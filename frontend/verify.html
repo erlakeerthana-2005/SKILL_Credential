@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="style.css">
     <style>
         body {
-            background: radial-gradient(circle at top right, #1a1c2c, #0d0e1b);
+            background: #f8fafc;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -25,8 +25,8 @@
 
         .result-card {
             display: none;
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: #ffffff;
+            border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
             backdrop-filter: blur(10px);
             border-radius: 20px;
             padding: 30px;
@@ -38,7 +38,7 @@
             display: flex;
             align-items: center;
             gap: 12px;
-            color: #10b981;
+            color: #1e3a8a;
             font-weight: 700;
             margin-bottom: 24px;
             font-size: 1.1rem;
@@ -52,22 +52,22 @@
         }
 
         .label {
-            color: var(--text-dim);
+            color: #64748b;
             font-size: 0.9rem;
             font-weight: 600;
         }
 
         .value {
-            color: var(--text);
+            color: #0f172a;
             font-weight: 500;
         }
 
         .blockchain-footer {
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            border-top: 1px solid #e2e8f0;
             padding-top: 20px;
             font-family: monospace;
             font-size: 0.8rem;
-            color: var(--accent);
+            color: #1e3a8a;
             opacity: 0.8;
         }
 
@@ -91,7 +91,7 @@
         <div style="text-align: center; margin-bottom: 40px;">
             <img src="logo.png" alt="Logo" style="height: 60px; margin-bottom: 20px;">
             <h1>Trust Protocol Verification</h1>
-            <p style="color: var(--text-dim);">Verify the cryptographic authenticity of any credential instantly.</p>
+            <p style="color: #64748b;">Verify the cryptographic authenticity of any credential instantly.</p>
         </div>
 
         <div class="input-group">
@@ -102,12 +102,12 @@
             </div>
         </div>
 
-        <div id="loader" style="display: none; text-align: center; color: var(--accent); margin-top: 20px;">
+        <div id="loader" style="display: none; text-align: center; color: #1e3a8a; margin-top: 20px;">
             <span style="display: inline-block; animation: spin 1s linear infinite; margin-right: 10px;">🛡️</span>
             Accessing Decentralized Ledger...
         </div>
         <div id="errorMsg"
-            style="color: #ef4444; text-align: center; margin-top: 20px; font-weight: 600; display: none;"></div>
+            style="color: #dc2626; text-align: center; margin-top: 20px; font-weight: 600; display: none;"></div>
 
         <div id="resultCard" class="result-card">
             <div class="verified-header">
@@ -132,13 +132,13 @@
             <div class="blockchain-footer">
                 <div>LEDGER_INDEX: #<span id="resBlock"></span></div>
                 <div>BLOCK_TIMESTAMP: <span id="resTime"></span></div>
-                <div style="margin-top: 10px; color: #10b981;">✓ Status: Cryptographically Secure & Immutable</div>
+                <div style="margin-top: 10px; color: #1e3a8a;">✓ Status: Cryptographically Secure & Immutable</div>
             </div>
         </div>
 
         <div style="text-align: center; margin-top: 40px;">
             <a href="login.html"
-                style="color: var(--accent); text-decoration: none; font-size: 0.9rem; font-weight: 600;">← Back to
+                style="color: #1e3a8a; text-decoration: none; font-size: 0.9rem; font-weight: 600;">← Back to
                 Portal</a>
         </div>
     </div>

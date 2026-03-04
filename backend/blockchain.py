@@ -62,7 +62,7 @@ class Blockchain:
 
     def get_block_by_hash(self, hash_value):
         for block in self.chain:
-            if block.data.get('credential_hash') == hash_value:
+            if isinstance(block.data, dict) and block.data.get('credential_hash') == hash_value:
                 return block
         return None
 
