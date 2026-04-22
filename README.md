@@ -262,7 +262,7 @@ For quick testing without the OTP process, use these pre-verified accounts:
 
 | Role | Email Address | Password Note |
 | :--- | :--- | :--- |
-| **Admin** | `keerthanaram2501@gmail.com` | `admin@123` |
+
 | **Institution** | `institute@test.com` | `admin@123` |
 | **Student (Linked)** | `student@example.com` | `password123` |
 
