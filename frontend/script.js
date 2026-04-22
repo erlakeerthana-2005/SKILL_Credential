@@ -1,5 +1,9 @@
 // API Configuration
-const API_BASE_URL = "http://127.0.0.1:5000";
+// For production (Netlify): Replace with your Render backend URL after deploying
+// For local development: Use http://127.0.0.1:5000
+const API_BASE_URL = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
+    ? "http://127.0.0.1:5000"
+    : "https://skill-credential-backend.onrender.com";
 
 // Global Toast System
 const toastContainer = document.createElement('div');
