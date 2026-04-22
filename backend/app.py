@@ -56,6 +56,14 @@ with app.app_context():
                 "skill": cred.skill_name
             })
 
+@app.route('/')
+def home():
+    return jsonify({
+        "status": "online",
+        "message": "Skill Credential Aggregator API is running",
+        "version": "1.0.0"
+    }), 200
+
 # ============================================
 # MODULE 1: USER REGISTRATION & AUTHENTICATION
 # ============================================
